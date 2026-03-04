@@ -8,6 +8,7 @@ interface EntryDraft {
   text: string;
   moodTags: MoodTag[];
   photoUri: string | null;
+  imageInstruction: string;
 }
 
 interface EntryState {
@@ -34,6 +35,7 @@ const initialDraft: EntryDraft = {
   text: '',
   moodTags: [],
   photoUri: null,
+  imageInstruction: '',
 };
 
 export const useEntryStore = create<EntryState>((set, get) => ({
@@ -79,7 +81,9 @@ export const useEntryStore = create<EntryState>((set, get) => ({
       // Generate watercolor image
       const imageUrl = await generateWatercolorImage(
         draft.text,
-        draft.moodTags
+        draft.moodTags,
+        undefined,
+        draft.imageInstruction || undefined
       );
 
       // Update entry with generated image

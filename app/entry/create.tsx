@@ -149,11 +149,34 @@ export default function CreateEntryScreen() {
           </View>
         </View>
 
-        {/* Step 3: Photo (optional) */}
+        {/* Step 3: Image instruction (optional) */}
         <View style={styles.step}>
           <View style={styles.stepHeader}>
             <View style={[styles.stepBadge, styles.stepBadgeOptional]}>
               <Text style={[styles.stepNumber, styles.stepNumberOptional]}>3</Text>
+            </View>
+            <Text style={styles.stepTitle}>生成したい絵のイメージ</Text>
+            <Text style={styles.stepSubtitle}>（任意）</Text>
+          </View>
+          <View style={styles.textInputContainer}>
+            <TextInput
+              style={[styles.textInput, styles.instructionInput]}
+              value={draft.imageInstruction}
+              onChangeText={(t) => setDraft({ imageInstruction: t })}
+              placeholder={'例）カフェでコーヒーを飲んでいる二人、秋の公園を散歩している様子'}
+              placeholderTextColor={Colors.textLight}
+              multiline
+              maxLength={200}
+              textAlignVertical="top"
+            />
+          </View>
+        </View>
+
+        {/* Step 4: Photo (optional) */}
+        <View style={styles.step}>
+          <View style={styles.stepHeader}>
+            <View style={[styles.stepBadge, styles.stepBadgeOptional]}>
+              <Text style={[styles.stepNumber, styles.stepNumberOptional]}>4</Text>
             </View>
             <Text style={styles.stepTitle}>写真を追加</Text>
             <Text style={styles.stepSubtitle}>（任意）</Text>
@@ -263,6 +286,10 @@ const styles = StyleSheet.create({
     color: Colors.text,
     lineHeight: 24,
     minHeight: 100,
+  },
+  instructionInput: {
+    minHeight: 72,
+    fontSize: 15,
   },
   charCount: {
     fontSize: 12,

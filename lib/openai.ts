@@ -21,7 +21,8 @@ const MOOD_TAG_LABELS: Record<MoodTag, string> = {
 export async function generateWatercolorImage(
   text: string,
   moodTags: MoodTag[],
-  photoDescription?: string
+  photoDescription?: string,
+  imageInstruction?: string
 ): Promise<string> {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI APIキーが設定されていません。.env ファイルに EXPO_PUBLIC_OPENAI_API_KEY を設定してください。');
@@ -30,12 +31,16 @@ export async function generateWatercolorImage(
   const photoContext = photoDescription
     ? `参考写真の要素を取り入れて、`
     : '';
+  const userInstruction = imageInstruction
+    ? `User's specific request for this image (highest priority): ${imageInstruction}`
+    : '';
 
   const prompt = `
     A heartwarming couple's diary illustration in a cute Japanese storybook watercolor style.
     Today's diary entry (Japanese): 「${text}」
     Mood: ${moodDescription}
     ${photoContext}
+    ${userInstruction}
     Art style: soft watercolor washes with clean ink outlines, warm and cozy atmosphere, vibrant but gentle colors.
     Characters: cute chibi-proportioned figures with clearly drawn expressive faces — visible eyes, smiles, and emotions matching the diary mood.
     Color palette: warm oranges, golden yellows, soft reds, and warm blues. Rich saturation, not pale or washed-out.
