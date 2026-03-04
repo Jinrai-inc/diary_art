@@ -1,14 +1,13 @@
 import { create } from 'zustand';
 import { Entry, MoodTag } from '@/types';
 import { getEntries, createEntry, updateEntryImage, deleteEntry } from '@/lib/supabase/entries';
-import { generateWatercolorImage } from '@/lib/openai';
+import { generateWatercolorImage, analyzePhoto } from '@/lib/openai';
 import { supabase } from '@/lib/supabase/client';
 
 interface EntryDraft {
   text: string;
   moodTags: MoodTag[];
   photoUri: string | null;
-  imageInstruction: string;
 }
 
 interface EntryState {
@@ -35,7 +34,6 @@ const initialDraft: EntryDraft = {
   text: '',
   moodTags: [],
   photoUri: null,
-  imageInstruction: '',
 };
 
 export const useEntryStore = create<EntryState>((set, get) => ({
@@ -78,12 +76,14 @@ export const useEntryStore = create<EntryState>((set, get) => ({
 
       if (error || !entry) throw error ?? new Error('エントリー作成失敗');
 
-      // Generate watercolor image
+      // Analyze photo if provided, then generate watercolor image
+      const photoDescription = draft.photoUri
+        ? await analyzePhoto(draft.photoUri)
+        : undefined;
       const imageUrl = await generateWatercolorImage(
         draft.text,
         draft.moodTags,
-        undefined,
-        draft.imageInstruction || undefined
+        photoDescription || undefined
       );
 
       // Update entry with generated image
