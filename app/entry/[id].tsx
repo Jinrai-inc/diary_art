@@ -12,10 +12,11 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getEntryById, deleteEntry, withdrawEntry } from '@/lib/supabase/entries';
+import { getEntryById, withdrawEntry } from '@/lib/supabase/entries';
 import { Entry } from '@/types';
 import { MOOD_OPTIONS } from '@/constants/Moods';
 import { Colors } from '@/constants/Colors';
+import { useEntryStore } from '@/store/entryStore';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ export default function EntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [entry, setEntry] = useState<Entry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const removeEntry = useEntryStore((s) => s.removeEntry);
 
   useEffect(() => {
     if (id) loadEntry();
@@ -42,7 +44,7 @@ export default function EntryDetailScreen() {
         text: '削除',
         style: 'destructive',
         onPress: async () => {
-          await deleteEntry(id);
+          await removeEntry(id);
           router.back();
         },
       },

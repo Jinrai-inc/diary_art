@@ -42,7 +42,7 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="entry/[id]"
-          options={{ title: '日記の詳細' }}
+          options={{ title: '日記の詳細', headerBackTitle: '戻る' }}
         />
         <Stack.Screen
           name="pairing/invite"

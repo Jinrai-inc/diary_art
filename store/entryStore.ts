@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Entry, MoodTag } from '@/types';
-import { getEntries, createEntry, updateEntryImage } from '@/lib/supabase/entries';
+import { getEntries, createEntry, updateEntryImage, deleteEntry } from '@/lib/supabase/entries';
 import { generateWatercolorImage } from '@/lib/openai';
 import { supabase } from '@/lib/supabase/client';
 
@@ -27,6 +27,7 @@ interface EntryState {
   retryGenerate: (entryId: string) => Promise<string | null>;
   setCurrentEntry: (entry: Entry | null) => void;
   updateEntry: (entry: Entry) => void;
+  removeEntry: (entryId: string) => Promise<void>;
 }
 
 const initialDraft: EntryDraft = {
@@ -137,4 +138,12 @@ export const useEntryStore = create<EntryState>((set, get) => ({
       currentEntry:
         state.currentEntry?.id === entry.id ? entry : state.currentEntry,
     })),
+
+  removeEntry: async (entryId: string) => {
+    await deleteEntry(entryId);
+    set((state) => ({
+      entries: state.entries.filter((e) => e.id !== entryId),
+      currentEntry: state.currentEntry?.id === entryId ? null : state.currentEntry,
+    }));
+  },
 }));

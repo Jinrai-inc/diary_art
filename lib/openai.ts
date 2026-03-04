@@ -32,20 +32,19 @@ export async function generateWatercolorImage(
     : '';
 
   const prompt = `
-    A warm and heartfelt watercolor illustration in the style of a cute storybook or Japanese manga diary art.
-    Diary entry: "${text}"
-    Mood: ${moodDescription}
+    温かみのある絵本風・日本のマンガ日記スタイルの水彩イラスト。
+    日記の内容: 「${text}」
+    気分: ${moodDescription}
     ${photoContext}
-    Style requirements:
-    - Clear, expressive faces with visible eyes and gentle smiles on the characters
-    - Warm, vibrant colors with rich saturation — oranges, yellows, soft reds, and warm blues
-    - Soft watercolor washes with visible brush strokes and gentle ink outlines
-    - Cozy, intimate scene with characters that feel lively and emotional
-    - Cute chibi-style or storybook illustration proportions
-    - Background details that reflect the diary scene (indoor/outdoor, season, time of day)
-    - Warm golden or soft lighting atmosphere
-    - No text, letters, or symbols anywhere in the image
-    - Portrait (vertical) composition
+    描写の要件:
+    - 登場人物の顔をはっきり描き、目・表情・笑顔をわかりやすく表現すること
+    - オレンジ・黄色・淡い赤・温かみのある青など、彩度の高い暖色系カラー
+    - 水彩の柔らかい色面に、ペン風の輪郭線を加えたスタイル
+    - 日記の場面に合った背景（室内外・季節・時間帯）を描くこと
+    - 人物はちびキャラまたは絵本のような丸みのある体型
+    - 温かいゴールドや柔らかい光の雰囲気
+    - 画像内にテキスト・文字・記号は一切含めないこと
+    - 縦向き（portrait）の構図
   `.trim();
 
   const response = await fetch(OPENAI_API_URL, {
