@@ -114,6 +114,18 @@ export default function EntryDetailScreen() {
         </View>
       )}
 
+      {/* Original photo */}
+      {entry.photo_url && (
+        <View style={styles.photoSection}>
+          <Text style={styles.photoLabel}>元の写真</Text>
+          <Image
+            source={{ uri: entry.photo_url }}
+            style={styles.photo}
+            resizeMode="cover"
+          />
+        </View>
+      )}
+
       {/* Status badges */}
       <View style={styles.badges}>
         {entry.is_shared && !entry.is_withdrawn && (
@@ -214,7 +226,22 @@ const styles = StyleSheet.create({
   },
   artwork: {
     width,
-    height: width * 1.3,
+    height: width * (9 / 16),
+  },
+  photoSection: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    gap: 8,
+  },
+  photoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  photo: {
+    width: '100%',
+    height: (width - 40) * (9 / 16),
+    borderRadius: 12,
   },
   artworkPlaceholder: {
     width,

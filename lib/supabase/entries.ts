@@ -1,6 +1,34 @@
 import { supabase } from './client';
 import { Entry, MoodTag } from '@/types';
 
+const PHOTO_BUCKET = 'entry-photos';
+
+export async function uploadEntryPhoto(photoUri: string, userId: string): Promise<string | null> {
+  try {
+    const response = await fetch(photoUri);
+    const blob = await response.blob();
+    const path = `${userId}/${Date.now()}.jpg`;
+
+    const { data, error } = await supabase.storage
+      .from(PHOTO_BUCKET)
+      .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+
+    if (error) {
+      console.error('[Storage] Upload error:', error.message);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(PHOTO_BUCKET)
+      .getPublicUrl(data.path);
+
+    return publicUrl;
+  } catch (err) {
+    console.error('[Storage] Photo upload failed:', err);
+    return null;
+  }
+}
+
 export async function createEntry(data: {
   text: string;
   mood_tags: MoodTag[];

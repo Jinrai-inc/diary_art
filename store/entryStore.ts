@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Entry, MoodTag } from '@/types';
-import { getEntries, createEntry, updateEntryImage, deleteEntry } from '@/lib/supabase/entries';
+import { getEntries, createEntry, updateEntryImage, deleteEntry, uploadEntryPhoto } from '@/lib/supabase/entries';
 import { generateWatercolorImage, analyzePhoto } from '@/lib/openai';
 import { supabase } from '@/lib/supabase/client';
 
@@ -67,19 +67,25 @@ export const useEntryStore = create<EntryState>((set, get) => ({
 
     set({ isGenerating: true, retryCount: 0, lastError: null });
     try {
+      // Get current user for storage path
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Upload photo and analyze it in parallel if provided
+      const [photoUrl, photoDescription] = draft.photoUri && user
+        ? await Promise.all([
+            uploadEntryPhoto(draft.photoUri, user.id),
+            analyzePhoto(draft.photoUri),
+          ])
+        : [null, undefined];
+
       // Create the entry
       const { entry, error } = await createEntry({
         text: draft.text,
         mood_tags: draft.moodTags,
-        photo_url: undefined, // Handle photo upload separately
+        photo_url: photoUrl ?? undefined,
       });
 
       if (error || !entry) throw error ?? new Error('エントリー作成失敗');
-
-      // Analyze photo if provided, then generate watercolor image
-      const photoDescription = draft.photoUri
-        ? await analyzePhoto(draft.photoUri)
-        : undefined;
       const imageUrl = await generateWatercolorImage(
         draft.text,
         draft.moodTags,
