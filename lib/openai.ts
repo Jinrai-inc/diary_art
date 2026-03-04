@@ -32,14 +32,20 @@ export async function generateWatercolorImage(
     : '';
 
   const prompt = `
-    水彩画スタイルで描かれた日記の1ページ。
-    今日の出来事: "${text}"
-    気分: ${moodDescription}
+    A warm and heartfelt watercolor illustration in the style of a cute storybook or Japanese manga diary art.
+    Diary entry: "${text}"
+    Mood: ${moodDescription}
     ${photoContext}
-    柔らかく温かみのある水彩画タッチで、感情を抽象的に表現した作品。
-    パステルカラーを使用し、にじみや透明感を活かした美しい水彩画。
-    テキストや文字は含めないこと。
-    縦向き（portrait）の構図。
+    Style requirements:
+    - Clear, expressive faces with visible eyes and gentle smiles on the characters
+    - Warm, vibrant colors with rich saturation — oranges, yellows, soft reds, and warm blues
+    - Soft watercolor washes with visible brush strokes and gentle ink outlines
+    - Cozy, intimate scene with characters that feel lively and emotional
+    - Cute chibi-style or storybook illustration proportions
+    - Background details that reflect the diary scene (indoor/outdoor, season, time of day)
+    - Warm golden or soft lighting atmosphere
+    - No text, letters, or symbols anywhere in the image
+    - Portrait (vertical) composition
   `.trim();
 
   const response = await fetch(OPENAI_API_URL, {
@@ -53,8 +59,8 @@ export async function generateWatercolorImage(
       prompt,
       n: 1,
       size: '1024x1792',
-      quality: 'standard',
-      style: 'natural',
+      quality: 'hd',
+      style: 'vivid',
     }),
   });
 
