@@ -1,26 +1,35 @@
-import { supabase } from './client';
+import * as FileSystem from 'expo-file-system';
+import { supabase, supabaseUrl } from './client';
 import { Entry, MoodTag } from '@/types';
 
 const PHOTO_BUCKET = 'entry-photos';
 
 export async function uploadEntryPhoto(photoUri: string, userId: string): Promise<string | null> {
   try {
-    const response = await fetch(photoUri);
-    const blob = await response.blob();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
     const path = `${userId}/${Date.now()}.jpg`;
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/${PHOTO_BUCKET}/${path}`;
 
-    const { data, error } = await supabase.storage
-      .from(PHOTO_BUCKET)
-      .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+    const result = await FileSystem.uploadAsync(uploadUrl, photoUri, {
+      httpMethod: 'POST',
+      uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'image/jpeg',
+        'x-upsert': 'false',
+      },
+    });
 
-    if (error) {
-      console.error('[Storage] Upload error:', error.message);
+    if (result.status !== 200 && result.status !== 201) {
+      console.error('[Storage] Upload failed:', result.status, result.body);
       return null;
     }
 
     const { data: { publicUrl } } = supabase.storage
       .from(PHOTO_BUCKET)
-      .getPublicUrl(data.path);
+      .getPublicUrl(path);
 
     return publicUrl;
   } catch (err) {
