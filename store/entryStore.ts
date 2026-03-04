@@ -18,6 +18,7 @@ interface EntryState {
   isLoading: boolean;
   retryCount: number;
   maxRetries: number;
+  lastError: string | null;
 
   setDraft: (draft: Partial<EntryDraft>) => void;
   resetDraft: () => void;
@@ -42,6 +43,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
   isLoading: false,
   retryCount: 0,
   maxRetries: 1, // Updated based on premium status
+  lastError: null,
 
   setDraft: (draft) =>
     set((state) => ({ draft: { ...state.draft, ...draft } })),
@@ -62,7 +64,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
     const { draft } = get();
     if (!draft.text || draft.moodTags.length === 0) return null;
 
-    set({ isGenerating: true, retryCount: 0 });
+    set({ isGenerating: true, retryCount: 0, lastError: null });
     try {
       // Create the entry
       const { entry, error } = await createEntry({
@@ -90,7 +92,9 @@ export const useEntryStore = create<EntryState>((set, get) => ({
 
       return finalEntry as Entry;
     } catch (err) {
-      console.error('Entry creation error:', err);
+      const message = err instanceof Error ? err.message : '不明なエラー';
+      console.error('Entry creation error:', message);
+      set({ lastError: message });
       return null;
     } finally {
       set({ isGenerating: false });

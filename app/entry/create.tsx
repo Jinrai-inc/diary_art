@@ -62,7 +62,11 @@ export default function CreateEntryScreen() {
     if (entry) {
       router.replace('/entry/result');
     } else {
-      Alert.alert('エラー', '生成に失敗しました。もう一度お試しください。');
+      const { lastError } = useEntryStore.getState();
+      Alert.alert(
+        '生成エラー',
+        lastError ?? '生成に失敗しました。もう一度お試しください。'
+      );
     }
   };
 

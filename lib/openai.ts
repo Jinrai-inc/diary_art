@@ -3,6 +3,10 @@ import { MoodTag } from '@/types';
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/images/generations';
 
+if (!OPENAI_API_KEY) {
+  console.warn('[OpenAI] EXPO_PUBLIC_OPENAI_API_KEY が .env に設定されていません');
+}
+
 const MOOD_TAG_LABELS: Record<MoodTag, string> = {
   happy: '幸せ・嬉しい',
   sad: '悲しい・寂しい',
@@ -19,6 +23,9 @@ export async function generateWatercolorImage(
   moodTags: MoodTag[],
   photoDescription?: string
 ): Promise<string> {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI APIキーが設定されていません。.env ファイルに EXPO_PUBLIC_OPENAI_API_KEY を設定してください。');
+  }
   const moodDescription = moodTags.map((t) => MOOD_TAG_LABELS[t]).join('、');
   const photoContext = photoDescription
     ? `参考写真の要素を取り入れて、`
@@ -53,7 +60,10 @@ export async function generateWatercolorImage(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message ?? '画像生成に失敗しました');
+    const message = error.error?.message ?? '画像生成に失敗しました';
+    const code = error.error?.code ?? response.status;
+    console.error('[OpenAI] Error:', code, message);
+    throw new Error(`[OpenAI ${code}] ${message}`);
   }
 
   const data = await response.json();
