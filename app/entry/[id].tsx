@@ -10,7 +10,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getEntryById, withdrawEntry } from '@/lib/supabase/entries';
 import { Entry } from '@/types';
@@ -89,6 +89,17 @@ export default function EntryDetailScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Stack.Screen
+        options={{
+          title: '日記の詳細',
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="chevron-back" size={22} color={Colors.primary} />
+              <Text style={styles.backButtonText}>戻る</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
       {/* Artwork */}
       {entry.generated_image_url ? (
         <Image
@@ -181,6 +192,16 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 40,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingLeft: 4,
+  },
+  backButtonText: {
+    fontSize: 17,
+    color: Colors.primary,
   },
   loading: {
     flex: 1,
