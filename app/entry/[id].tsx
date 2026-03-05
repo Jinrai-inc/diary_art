@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -17,6 +16,7 @@ import { Entry } from '@/types';
 import { MOOD_OPTIONS } from '@/constants/Moods';
 import { Colors } from '@/constants/Colors';
 import { useEntryStore } from '@/store/entryStore';
+import { WatercolorImage } from '@/components/WatercolorImage';
 
 const { width } = Dimensions.get('window');
 
@@ -87,6 +87,9 @@ export default function EntryDetailScreen() {
     .map((tag) => MOOD_OPTIONS.find((m) => m.tag === tag))
     .filter(Boolean);
 
+  // 新方式: photo_url、旧方式: generated_image_url
+  const photoUrl = entry.photo_url ?? entry.generated_image_url;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Stack.Screen
@@ -100,33 +103,28 @@ export default function EntryDetailScreen() {
           ),
         }}
       />
-      {/* Artwork */}
-      {entry.generated_image_url ? (
-        <Image
-          source={{ uri: entry.generated_image_url }}
-          style={styles.artwork}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.artworkPlaceholder}>
-          <Ionicons name="image-outline" size={48} color={Colors.textLight} />
-          <Text style={styles.noArtworkText}>画像なし</Text>
-        </View>
-      )}
 
-      {/* Original photo */}
-      {entry.photo_url && (
-        <View style={styles.photoSection}>
-          <Text style={styles.photoLabel}>元の写真</Text>
-          <Image
-            source={{ uri: entry.photo_url }}
+      {/* 写真（水彩フィルター） */}
+      {photoUrl ? (
+        <View style={styles.photoContainer}>
+          <WatercolorImage
+            uri={photoUrl}
             style={styles.photo}
             resizeMode="cover"
           />
+          <View style={styles.filterBadge}>
+            <Ionicons name="color-palette-outline" size={12} color="#FFFFFF" />
+            <Text style={styles.filterBadgeText}>水彩フィルター</Text>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.photoPlaceholder}>
+          <Ionicons name="image-outline" size={48} color={Colors.textLight} />
+          <Text style={styles.noPhotoText}>写真なし</Text>
         </View>
       )}
 
-      {/* Status badges */}
+      {/* ステータスバッジ */}
       <View style={styles.badges}>
         {entry.is_shared && !entry.is_withdrawn && (
           <View style={styles.badge}>
@@ -148,7 +146,7 @@ export default function EntryDetailScreen() {
         )}
       </View>
 
-      {/* Date */}
+      {/* 日付 */}
       <Text style={styles.date}>
         {new Date(entry.created_at).toLocaleDateString('ja-JP', {
           year: 'numeric',
@@ -158,10 +156,10 @@ export default function EntryDetailScreen() {
         })}
       </Text>
 
-      {/* Text */}
+      {/* 本文 */}
       <Text style={styles.entryText}>{entry.text}</Text>
 
-      {/* Mood tags */}
+      {/* 気分タグ */}
       <View style={styles.moodSection}>
         <Text style={styles.moodTitle}>気分</Text>
         <View style={styles.moodRow}>
@@ -177,7 +175,7 @@ export default function EntryDetailScreen() {
         </View>
       </View>
 
-      {/* Actions */}
+      {/* アクション */}
       <View style={styles.actionsSection}>
         {entry.is_shared && !entry.is_withdrawn && (
           <TouchableOpacity style={styles.actionButton} onPress={handleWithdraw}>
@@ -224,34 +222,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
-  artwork: {
-    width,
-    height: width * (9 / 16),
-  },
-  photoSection: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    gap: 8,
-  },
-  photoLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+  photoContainer: {
+    position: 'relative',
   },
   photo: {
-    width: '100%',
-    height: (width - 40) * (9 / 16),
-    borderRadius: 12,
-  },
-  artworkPlaceholder: {
     width,
     height: width,
+  },
+  filterBadge: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.40)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  filterBadgeText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  photoPlaceholder: {
+    width,
+    height: width * 0.6,
     backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
   },
-  noArtworkText: {
+  noPhotoText: {
     fontSize: 16,
     color: Colors.textLight,
   },

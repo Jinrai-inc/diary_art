@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { Entry, MoodTag } from '@/types';
-import { getEntries, createEntry, updateEntryImage, deleteEntry, uploadEntryPhoto } from '@/lib/supabase/entries';
-import { applyWatercolorFilter } from '@/lib/openai';
+import { getEntries, createEntry, deleteEntry, uploadEntryPhoto } from '@/lib/supabase/entries';
 import { supabase } from '@/lib/supabase/client';
 
 interface EntryDraft {
@@ -64,7 +63,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 元の写真をアップロード
+      // 写真をアップロード
       const photoUrl = draft.photoUri && user
         ? await uploadEntryPhoto(draft.photoUri, user.id)
         : null;
@@ -77,21 +76,6 @@ export const useEntryStore = create<EntryState>((set, get) => ({
       });
 
       if (error || !entry) throw error ?? new Error('エントリー作成失敗');
-
-      // 写真がある場合は水彩フィルターを適用
-      if (draft.photoUri && user) {
-        const filteredUri = await applyWatercolorFilter(draft.photoUri);
-        const filteredUrl = await uploadEntryPhoto(filteredUri, user.id);
-        if (filteredUrl) {
-          const { entry: updatedEntry } = await updateEntryImage(entry.id, filteredUrl);
-          const finalEntry = (updatedEntry ?? entry) as Entry;
-          set((state) => ({
-            entries: [finalEntry, ...state.entries],
-            currentEntry: finalEntry,
-          }));
-          return finalEntry;
-        }
-      }
 
       const finalEntry = entry as Entry;
       set((state) => ({

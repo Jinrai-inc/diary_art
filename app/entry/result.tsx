@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   Dimensions,
   Alert,
@@ -16,8 +15,9 @@ import { usePairStore } from '@/store/pairStore';
 import { shareEntry, withdrawEntry } from '@/lib/supabase/entries';
 import { Colors } from '@/constants/Colors';
 import { MOOD_OPTIONS } from '@/constants/Moods';
+import { WatercolorImage } from '@/components/WatercolorImage';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function ResultScreen() {
   const { currentEntry, resetDraft, updateEntry } = useEntryStore();
@@ -74,50 +74,44 @@ export default function ResultScreen() {
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
     setCanUndo(false);
     setIsSent(false);
-
     await withdrawEntry(currentEntry.id);
     updateEntry({ ...currentEntry, is_shared: false, is_withdrawn: true });
     Alert.alert('取り消しました', '送信を取り消しました');
   };
 
   const handleSNSShare = async () => {
-    const url = currentEntry.generated_image_url ?? currentEntry.photo_url;
-    if (!url) return;
+    if (!currentEntry.photo_url) return;
     await Share.share({
-      message: `今日の気持ちを水彩画にしました 🎨\n${currentEntry.text}`,
-      url,
+      message: `今日の気持ちを水彩画風に残しました 🎨\n${currentEntry.text}`,
+      url: currentEntry.photo_url,
     });
   };
 
-  const displayImageUrl = currentEntry.generated_image_url ?? currentEntry.photo_url;
-
   return (
     <View style={styles.container}>
-      {/* Watercolor artwork */}
+      {/* 水彩フィルター適用済み写真 */}
       <View style={styles.artworkContainer}>
-        {displayImageUrl ? (
-          <Image
-            source={{ uri: displayImageUrl }}
-            style={styles.artwork}
-            resizeMode="cover"
-          />
+        {currentEntry.photo_url ? (
+          <>
+            <WatercolorImage
+              uri={currentEntry.photo_url}
+              style={styles.artwork}
+              resizeMode="cover"
+            />
+            <View style={styles.filterBadge}>
+              <Ionicons name="color-palette-outline" size={13} color="#FFFFFF" />
+              <Text style={styles.filterBadgeText}>水彩フィルター</Text>
+            </View>
+          </>
         ) : (
           <View style={styles.artworkPlaceholder}>
             <Text style={styles.placeholderEmoji}>📖</Text>
             <Text style={styles.placeholderText}>写真なし</Text>
           </View>
         )}
-
-        {/* Label: watercolor applied */}
-        {currentEntry.generated_image_url && (
-          <View style={styles.filterBadge}>
-            <Ionicons name="color-palette-outline" size={13} color="#FFFFFF" />
-            <Text style={styles.filterBadgeText}>水彩フィルター適用済み</Text>
-          </View>
-        )}
       </View>
 
-      {/* Entry info */}
+      {/* 本文・気分タグ */}
       <View style={styles.infoSection}>
         <Text style={styles.entryText} numberOfLines={3}>
           {currentEntry.text}
@@ -135,7 +129,7 @@ export default function ResultScreen() {
         </View>
       </View>
 
-      {/* Undo button */}
+      {/* 取り消しボタン */}
       {canUndo && (
         <TouchableOpacity style={styles.undoButton} onPress={handleUndo}>
           <Ionicons name="arrow-undo" size={16} color={Colors.textSecondary} />
@@ -143,7 +137,7 @@ export default function ResultScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Action buttons */}
+      {/* アクションボタン */}
       {!isSent && (
         <View style={styles.actions}>
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -158,7 +152,7 @@ export default function ResultScreen() {
             </Text>
           </TouchableOpacity>
 
-          {displayImageUrl && (
+          {currentEntry.photo_url && (
             <TouchableOpacity style={styles.snsButton} onPress={handleSNSShare}>
               <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
               <Text style={styles.snsButtonText}>SNSに書き出し</Text>
@@ -215,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.40)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,

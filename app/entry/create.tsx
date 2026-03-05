@@ -45,9 +45,8 @@ export default function CreateEntryScreen() {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+      allowsEditing: false,
+      quality: 0.85,
     });
     if (!result.canceled && result.assets[0]) {
       setDraft({ photoUri: result.assets[0].uri });
@@ -71,7 +70,7 @@ export default function CreateEntryScreen() {
     }
   };
 
-  const loadingText = hasPhoto ? '水彩フィルターを適用中...' : '保存中...';
+  const loadingText = '保存中...';
   const buttonLabel = hasPhoto ? '🎨 水彩フィルターをかける' : '💾 保存する';
 
   return (
