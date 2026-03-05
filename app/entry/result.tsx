@@ -8,13 +8,11 @@ import {
   Dimensions,
   Alert,
   Share,
-  Animated,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useEntryStore } from '@/store/entryStore';
 import { usePairStore } from '@/store/pairStore';
-import { useAuthStore } from '@/store/authStore';
 import { shareEntry, withdrawEntry } from '@/lib/supabase/entries';
 import { Colors } from '@/constants/Colors';
 import { MOOD_OPTIONS } from '@/constants/Moods';
@@ -22,14 +20,11 @@ import { MOOD_OPTIONS } from '@/constants/Moods';
 const { width, height } = Dimensions.get('window');
 
 export default function ResultScreen() {
-  const { currentEntry, retryGenerate, isGenerating, retryCount, maxRetries, resetDraft, updateEntry } =
-    useEntryStore();
+  const { currentEntry, resetDraft, updateEntry } = useEntryStore();
   const { partner } = usePairStore();
-  const { profile } = useAuthStore();
   const [isSent, setIsSent] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const undoCountdown = useRef(5);
 
   useEffect(() => {
     return () => {
@@ -48,7 +43,7 @@ export default function ResultScreen() {
 
   const handleSave = () => {
     resetDraft();
-    Alert.alert('保存しました', '作品をプライベートとして保存しました', [
+    Alert.alert('保存しました', '日記をプライベートとして保存しました', [
       { text: 'OK', onPress: () => router.replace('/(tabs)') },
     ]);
   };
@@ -86,54 +81,39 @@ export default function ResultScreen() {
   };
 
   const handleSNSShare = async () => {
-    if (!currentEntry.generated_image_url) return;
+    const url = currentEntry.generated_image_url ?? currentEntry.photo_url;
+    if (!url) return;
     await Share.share({
-      message: `今日の気持ちを水彩画にしました ✨\n${currentEntry.text}`,
-      url: currentEntry.generated_image_url,
+      message: `今日の気持ちを水彩画にしました 🎨\n${currentEntry.text}`,
+      url,
     });
   };
 
-  const handleRetry = async () => {
-    if (retryCount >= maxRetries) {
-      Alert.alert(
-        'リトライ上限',
-        'リトライ回数の上限に達しました。Premiumにアップグレードするとリトライ回数が増えます。'
-      );
-      return;
-    }
-    await retryGenerate(currentEntry.id);
-  };
+  const displayImageUrl = currentEntry.generated_image_url ?? currentEntry.photo_url;
 
   return (
     <View style={styles.container}>
-      {/* Artwork */}
+      {/* Watercolor artwork */}
       <View style={styles.artworkContainer}>
-        {currentEntry.generated_image_url ? (
+        {displayImageUrl ? (
           <Image
-            source={{ uri: currentEntry.generated_image_url }}
+            source={{ uri: displayImageUrl }}
             style={styles.artwork}
             resizeMode="cover"
           />
         ) : (
           <View style={styles.artworkPlaceholder}>
-            <Text style={styles.placeholderEmoji}>🎨</Text>
-            <Text style={styles.placeholderText}>生成中...</Text>
+            <Text style={styles.placeholderEmoji}>📖</Text>
+            <Text style={styles.placeholderText}>写真なし</Text>
           </View>
         )}
 
-        {/* Retry button */}
-        {!isSent && retryCount < maxRetries && (
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={handleRetry}
-            disabled={isGenerating}
-          >
-            <Ionicons
-              name="refresh"
-              size={20}
-              color={Colors.textSecondary}
-            />
-          </TouchableOpacity>
+        {/* Label: watercolor applied */}
+        {currentEntry.generated_image_url && (
+          <View style={styles.filterBadge}>
+            <Ionicons name="color-palette-outline" size={13} color="#FFFFFF" />
+            <Text style={styles.filterBadgeText}>水彩フィルター適用済み</Text>
+          </View>
         )}
       </View>
 
@@ -155,7 +135,7 @@ export default function ResultScreen() {
         </View>
       </View>
 
-      {/* Undo button (5 second window) */}
+      {/* Undo button */}
       {canUndo && (
         <TouchableOpacity style={styles.undoButton} onPress={handleUndo}>
           <Ionicons name="arrow-undo" size={16} color={Colors.textSecondary} />
@@ -178,25 +158,22 @@ export default function ResultScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.snsButton} onPress={handleSNSShare}>
-            <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
-            <Text style={styles.snsButtonText}>SNSに書き出し</Text>
-          </TouchableOpacity>
+          {displayImageUrl && (
+            <TouchableOpacity style={styles.snsButton} onPress={handleSNSShare}>
+              <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
+              <Text style={styles.snsButtonText}>SNSに書き出し</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
-      {isSent && !canUndo && (
-        <View style={styles.sentMessage}>
-          <Text style={styles.sentEmoji}>💌</Text>
-          <Text style={styles.sentText}>送信しました</Text>
-        </View>
-      )}
-
-      {isSent && canUndo && (
+      {isSent && (
         <View style={styles.sentMessage}>
           <Text style={styles.sentEmoji}>💌</Text>
           <Text style={styles.sentText}>
-            {partner?.display_name ?? 'パートナー'}に送りました
+            {canUndo
+              ? `${partner?.display_name ?? 'パートナー'}に送りました`
+              : '送信しました'}
           </Text>
         </View>
       )}
@@ -231,21 +208,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
-  retryButton: {
+  filterBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(250,245,240,0.85)',
+    bottom: 12,
+    left: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  filterBadgeText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
   infoSection: {
     paddingHorizontal: 20,
