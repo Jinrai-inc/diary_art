@@ -14,7 +14,7 @@ export async function uploadEntryPhoto(photoUri: string, userId: string): Promis
 
     const result = await FileSystem.uploadAsync(uploadUrl, photoUri, {
       httpMethod: 'POST',
-      uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+      uploadType: 1, // FileSystemUploadType.BINARY_CONTENT
       headers: {
         Authorization: `Bearer ${session.access_token}`,
         'Content-Type': 'image/jpeg',
