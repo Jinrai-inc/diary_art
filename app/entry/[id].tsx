@@ -33,7 +33,7 @@ export default function EntryDetailScreen() {
   const loadEntry = async () => {
     setIsLoading(true);
     const { entry: data } = await getEntryById(id);
-    setEntry(data as Entry);
+    setEntry((data ?? null) as Entry | null);
     setIsLoading(false);
   };
 
