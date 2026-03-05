@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { supabase, supabaseUrl } from './client';
 import { Entry, MoodTag } from '@/types';
 
